@@ -1,0 +1,424 @@
+@use './utils.scss' as utils;
+@use "gridstack/dist/gridstack.css";
+
+.grid-stack {
+  background: lighten(utils.$secondary-color, 75);
+  min-height: 100vh;
+  max-height: 100vh;
+}
+.grid-stack-item-content {
+  text-align: center;
+  background-color: transparent;
+}
+
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body{
+  background-color: lighten(utils.$secondary-color, 75);
+}
+
+.fxugw4r{
+  background-color: lighten(utils.$secondary-color, 75) !important;
+}
+
+.header-logo{
+
+}
+
+.grid-stack-item-content{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  color: utils.$black;
+  text-decoration: none;
+  div.img-wrapper{
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    img{
+      object-fit: contain;
+    }
+  }
+  div.name{
+    width: 100%;
+  }
+}
+
+
+/* ========================================
+   FLEXBOX UTILITIES
+   ======================================== */
+
+/* Tailles d'écran */
+$breakpoints: (
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+);
+
+$spacings: (
+  0: 0,
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 20px,
+  6: 24px,
+  8: 32px,
+  10: 40px,
+  12: 48px
+);
+
+.p {
+  @each $name, $value in $spacings {
+    &#{$name} {
+      padding: $value;
+    }
+  }
+}
+
+@each $side, $prop in (
+  t: padding-top,
+  r: padding-right,
+  b: padding-bottom,
+  l: padding-left,
+  x: (padding-left, padding-right),
+  y: (padding-top, padding-bottom)
+) {
+  @each $name, $value in $spacings {
+    .p#{$side}-#{$name} {
+      @if $side == x {
+        padding-left: $value;
+        padding-right: $value;
+      } @else if $side == y {
+        padding-top: $value;
+        padding-bottom: $value;
+      } @else {
+        #{$prop}: $value;
+      }
+    }
+  }
+}
+
+@each $screen, $width in $breakpoints {
+  @media (min-width: $width) {
+    @each $name, $value in $spacings {
+      .#{$screen}-p-#{$name} {
+        padding: $value;
+      }
+    }
+
+    @each $side, $prop in (
+      t: padding-top,
+      r: padding-right,
+      b: padding-bottom,
+      l: padding-left,
+      x: (padding-left, padding-right),
+      y: (padding-top, padding-bottom)
+    ) {
+      @each $name, $value in $spacings {
+        .#{$screen}-p#{$side}-#{$name} {
+          @if $side == x {
+            padding-left: $value;
+            padding-right: $value;
+          } @else if $side == y {
+            padding-top: $value;
+            padding-bottom: $value;
+          } @else {
+            #{$prop}: $value;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Conteneur de base */
+.box {
+  &.flexbox {
+    display: flex;
+  }
+}
+
+/* ========================================
+   DIRECTIONS
+   ======================================== */
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+/* ========================================
+   JUSTIFY CONTENT (axe principal)
+   ======================================== */
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+/* ========================================
+   ALIGN ITEMS (axe secondaire)
+   ======================================== */
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.items-baseline {
+  align-items: baseline;
+}
+
+/* ========================================
+   ALIGN SELF
+   ======================================== */
+
+.self-start {
+  align-self: flex-start;
+}
+
+.self-center {
+  align-self: center;
+}
+
+.self-end {
+  align-self: flex-end;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
+
+/* ========================================
+   WRAP
+   ======================================== */
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.flex-wrap-reverse {
+  flex-wrap: wrap-reverse;
+}
+
+/* ========================================
+   FLEX GROW / SHRINK
+   ======================================== */
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.grow-0 {
+  flex-grow: 0;
+}
+
+.shrink {
+  flex-shrink: 1;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   GAP
+   ======================================== */
+
+$gaps: (
+  0: 0,
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 20px,
+  6: 24px,
+  8: 32px,
+  10: 40px,
+  12: 48px
+);
+
+@each $name, $value in $gaps {
+  .gap-#{$name} {
+    gap: $value;
+  }
+
+  .gap-x-#{$name} {
+    column-gap: $value;
+  }
+
+  .gap-y-#{$name} {
+    row-gap: $value;
+  }
+}
+
+/* ========================================
+   FLEXBOX RESPONSIVE
+   Exemple : .md-flex-row
+   ======================================== */
+
+@each $screen, $width in $breakpoints {
+  @media (min-width: $width) {
+
+    /* Directions */
+    .#{$screen}-flex-row {
+      flex-direction: row;
+    }
+
+    .#{$screen}-flex-row-reverse {
+      flex-direction: row-reverse;
+    }
+
+    .#{$screen}-flex-col {
+      flex-direction: column;
+    }
+
+    .#{$screen}-flex-col-reverse {
+      flex-direction: column-reverse;
+    }
+
+    /* Justify content */
+    .#{$screen}-justify-start {
+      justify-content: flex-start;
+    }
+
+    .#{$screen}-justify-center {
+      justify-content: center;
+    }
+
+    .#{$screen}-justify-end {
+      justify-content: flex-end;
+    }
+
+    .#{$screen}-justify-between {
+      justify-content: space-between;
+    }
+
+    .#{$screen}-justify-around {
+      justify-content: space-around;
+    }
+
+    .#{$screen}-justify-evenly {
+      justify-content: space-evenly;
+    }
+
+    /* Align items */
+    .#{$screen}-items-start {
+      align-items: flex-start;
+    }
+
+    .#{$screen}-items-center {
+      align-items: center;
+    }
+
+    .#{$screen}-items-end {
+      align-items: flex-end;
+    }
+
+    .#{$screen}-items-stretch {
+      align-items: stretch;
+    }
+
+    .#{$screen}-items-baseline {
+      align-items: baseline;
+    }
+
+    /* Wrap */
+    .#{$screen}-flex-wrap {
+      flex-wrap: wrap;
+    }
+
+    .#{$screen}-flex-nowrap {
+      flex-wrap: nowrap;
+    }
+
+    /* Gap */
+    @each $name, $value in $gaps {
+      .#{$screen}-gap-#{$name} {
+        gap: $value;
+      }
+    }
+
+    /* Flex grow */
+    .#{$screen}-grow {
+      flex-grow: 1;
+    }
+
+    .#{$screen}-grow-0 {
+      flex-grow: 0;
+    }
+
+    .#{$screen}-shrink-0 {
+      flex-shrink: 0;
+    }
+  }
+}

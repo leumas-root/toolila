@@ -1,0 +1,31 @@
+@use './../utils.scss' as utils ;
+
+
+:global(header){
+    position: fixed;
+    top: 0;
+    z-index: 10000;
+    width: 100%;
+    pointer-events: none;
+    div.container{
+        padding: var(--space-5);
+        max-width: 900px;
+        margin-inline: auto;
+        background: utils.$white;
+        pointer-events: auto;
+    }
+    .header-logo{
+        display: inline-block;
+        .logo{
+            max-width: 10rem;
+            height: auto;
+            position: relative;
+            img{
+                position: static !important;
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+}
+
