@@ -23,6 +23,18 @@
   background-color: transparent;
 }
 
+
+.logo{
+    max-width: 10rem;
+    height: auto;
+    position: relative;
+    img{
+        position: static !important;
+        height: 100%;
+        width: 100%;
+    }
+}
+
 *{
   padding: 0;
   margin: 0;

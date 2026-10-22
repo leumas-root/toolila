@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import type { Tables, TablesInsert } from '../../utils/supabase/database.types';
+import { requireAdmin } from './admin';
 import { createClient } from '../../utils/supabase/server';
 
 type AddToolResult = {
@@ -80,8 +81,13 @@ export async function getTools(
 		return { data: null, error: 'La liste des identifiants contient une valeur invalide.' };
 	}
 
+	const { authorized } = await requireAdmin(false);
 	const supabase = createClient(await cookies());
-	let query = supabase.from('tool').select().eq('isPending', 'No');
+	let query = supabase.from('tool').select();
+
+	if (!authorized) {
+		query = query.eq('isPending', 'No');
+	}
 
 	if (ids && ids.length > 0) {
 		query = query.in('id', ids);
@@ -95,6 +101,5 @@ export async function getTools(
 
 	return { data, error: null };
 }
-
 
 
