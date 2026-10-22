@@ -28,3 +28,22 @@ form.form_add_tool{
         }
     }
 }
+
+.board-wrapper{
+    position: relative;
+    .loader-wrapper{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        &.hide{
+            visibility: hidden;
+        }
+        svg{
+            width: 200px;
+            height: 200px;
+            color: utils.$primary-color;
+        }
+    }
+}

@@ -2,9 +2,21 @@
 @use "gridstack/dist/gridstack.css";
 
 .grid-stack {
-  background: lighten(utils.$secondary-color, 75);
+  position: relative;
   min-height: 100vh;
-  max-height: 100vh;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('/gridpath.png');
+    background-position: center;
+    background-repeat: repeat;
+    opacity: 0.1; // 30 % d'opacité
+    z-index: -1;
+    pointer-events: none;
+  }
 }
 .grid-stack-item-content {
   text-align: center;
@@ -38,8 +50,8 @@ body{
   text-decoration: none;
   div.img-wrapper{
     position: relative;
-    width: 3rem;
-    height: 3rem;
+    width: 4rem;
+    height: 4rem;
     img{
       object-fit: contain;
     }
@@ -49,7 +61,18 @@ body{
   }
 }
 
-
+/* ========================================
+   BUTTONS
+   ======================================== */
+.btn {
+  &.btn-danger {
+    background-color: #e90000;
+    color: utils.$white;
+    &:hover {
+      background-color: darken(#e90000, 10%);
+    }
+  }
+}
 /* ========================================
    FLEXBOX UTILITIES
    ======================================== */

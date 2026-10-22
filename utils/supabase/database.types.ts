@@ -16,25 +16,34 @@ export type Database = {
     Tables: {
       tool: {
         Row: {
+          dateCreated: string
           icon_tool: string | null
-          id: number
-          link_tool: string
+          id: string
+          isActive: string
+          isPending: string
+          link_tool: string | null
           name_tool: string
-          position: Json
+          position: Json | null
         }
         Insert: {
+          dateCreated?: string
           icon_tool?: string | null
-          id?: never
-          link_tool?: string
+          id?: string
+          isActive?: string
+          isPending?: string
+          link_tool?: string | null
           name_tool: string
-          position?: Json
+          position?: Json | null
         }
         Update: {
+          dateCreated?: string
           icon_tool?: string | null
-          id?: never
-          link_tool?: string
+          id?: string
+          isActive?: string
+          isPending?: string
+          link_tool?: string | null
           name_tool?: string
-          position?: Json
+          position?: Json | null
         }
         Relationships: []
       }

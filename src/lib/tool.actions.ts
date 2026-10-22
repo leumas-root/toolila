@@ -50,10 +50,10 @@ export async function addTool(tool: TablesInsert<'tool'>): Promise<AddToolResult
 }
 
 export async function updatePositionTool(
-	toolId: number,
+	toolId: string,
 	position: Tables<'tool'>['position'],
 ): Promise<AddToolResult> {
-	if (!Number.isInteger(toolId) || toolId <= 0) {
+	if (!toolId) {
 		return { data: null, error: 'L’identifiant du tool est invalide.' };
 	}
 
@@ -73,9 +73,9 @@ export async function updatePositionTool(
 }
 
 export async function getTools(
-	ids?: number[],
+	ids?: string[],
 ): Promise<{ data: Tables<'tool'>[] | null; error: string | null }> {
-	if (ids?.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+	if (ids?.some((id) => !id)) {
 		return { data: null, error: 'La liste des identifiants contient une valeur invalide.' };
 	}
 

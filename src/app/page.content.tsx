@@ -4,7 +4,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { GridStack, type GridItemHTMLElement, type GridStackWidget } from 'gridstack';
-import Image from 'next/image'
 import styles from "./page.module.scss";
 import { clsx } from "clsx";
 import 'gridstack/dist/gridstack.min.css';
@@ -15,6 +14,11 @@ import { useToolStore } from '@/lib/store/tool/provider';
 import { Controller, useForm } from 'react-hook-form';
 import { addTool, getTools, updatePositionTool } from '@/lib/tool.actions';
 import type { Tables } from '../../utils/supabase/database.types';
+import ImageWrapper from './components/ImageWrapper';
+import { type CallbackProps, ToastUi } from './components/Toast';
+import { useDialogue } from './components/DialogueUi';
+import { TrashIcon } from '@phosphor-icons/react';
+import { title } from 'process';
 
 type ToolFormValues = {
   name: string;
@@ -55,27 +59,23 @@ const ItemContent = ({ id, name, linkTo, icon }: { id: string; name?: string; li
         target={isExternalLink ? '_blank' : undefined}
         rel={isExternalLink ? 'noopener noreferrer' : undefined}
       >
-        <div className="img-wrapper">
-          <Image
-              src={icon || '/logo_default.svg'}
-              fill
-              unoptimized
-              alt={name ? `Icône ${name}` : 'Icône par défaut'}
-          />
-        </div>
+        <ImageWrapper 
+          isExternal={true} 
+          src={icon || '/logo_default.svg'} 
+          alt={name ? `Icône ${name}` : 'Icône par défaut'} 
+        />
         <div className="name">{name || 'Outils'}</div>
       </Link>
     </Tooltip>
   );
 }
 
-function persistToolPosition(item: GridItemHTMLElement) {
+function persistToolPosition(item: GridItemHTMLElement, callback? : (isUpdated : boolean)=>void) {
   const node = item.gridstackNode;
-  const toolId = Number(node?.id);
+  const toolId = node?.id;
 
   if (
-    !Number.isSafeInteger(toolId) ||
-    toolId <= 0 ||
+    !toolId ||
     typeof node?.x !== 'number' ||
     typeof node.y !== 'number'
   ) {
@@ -86,7 +86,7 @@ function persistToolPosition(item: GridItemHTMLElement) {
     x: node.x,
     y: node.y,
   }).then(({ error }) => {
-    if (error) console.error('Impossible de sauvegarder la position du tool:', error);
+    callback?.(!error);
   });
 }
 
@@ -94,7 +94,23 @@ export default function Board() {
   const gridRef = useRef<HTMLDivElement>(null);
   const gridInstance = useRef<GridStack | null>(null);
   const roots = useRef<Map<HTMLElement, Root>>(new Map());
-  const { gridStack, updateGridRef } = useToolStore((state) => state)
+  const ToastRef = useRef<((callbackProps: CallbackProps) => void) | null>(null);
+  const [isToolsLoaded, setIsToolsLoaded] = useState(false);
+  const [draggedToolId, setDraggedToolId] = useState<string | null>(null);
+  const { updateGridRef } = useToolStore((state) => state)
+  const { openDialogue , dialogue} = useDialogue();
+
+  function dragAction(item : null | GridItemHTMLElement) {
+    item && persistToolPosition(item, (isUpdate)=>{
+      if (isUpdate) return;
+      ToastRef.current?.({
+        title : "Position non enregistré",
+        message: `La nouvelle position de l'outil n'est pas sauvegarder. Vérifiez votre connexion internet et actualisez`,
+        intent: 'error',
+      });
+    })
+    setDraggedToolId(item?.gridstackNode?.id ?? null);
+  }
   useEffect(() => {
     if (!gridRef.current) return;
 
@@ -105,12 +121,17 @@ export default function Board() {
         cellHeight: 100,
         margin: 8,
         mode: 'float',
+        columnOpts: {
+          columnWidth: 100,
+          columnMax: 12,
+        },
       },
       gridRef.current
     );
     if (!grid) return; 
-    grid.on('dragstop', (_event, item) => persistToolPosition(item));
-    grid.on('resizestop', (_event, item) => persistToolPosition(item));
+    grid.on('dragstop', (_event, item) => {
+      dragAction(item);
+    });
     gridInstance.current = grid;
     updateGridRef(gridInstance);
 
@@ -136,7 +157,7 @@ export default function Board() {
             <ItemContent
               id={String(tool.id)}
               name={tool.name_tool}
-              linkTo={tool.link_tool}
+              linkTo={tool.link_tool || undefined}
               icon={tool.icon_tool ?? undefined}
             />
           ),
@@ -144,17 +165,28 @@ export default function Board() {
         roots.current,
         (addedItem) => Boolean(addedItem.gridstackNode?.id),
       );
-      if (!itemSet) console.error(`Impossible d’ajouter le tool ${tool.id} à la grille.`);
+      if (!itemSet) {
+        if (!ToastRef.current) return;
+        ToastRef.current?.({
+          message: `Le tool "${tool.name_tool}" a été créé, mais le bloc n’a pas pu être ajouté au grid.`,
+          intent: 'error',
+        });
+        return;
+      }
     }
 
     async function chargerTools() {
       const { data, error } = await getTools();
       if (!isActive) return;
       if (error) {
-        console.error('Impossible de charger les tools:', error);
+        openDialogue('La récuperation à échoué', `La grille n' pas pu être mise à jour. Vérifier votre connexion internet. ${error}`);
+        setIsToolsLoaded(true)
         return;
       }
       data?.forEach(ajouterToolEnGrille);
+      setTimeout(() => {
+        setIsToolsLoaded(true);
+      }, 800);
     }
 
     void chargerTools();
@@ -170,12 +202,23 @@ export default function Board() {
   }, []);
 
   return (
-    <div>
+    <div className={clsx(styles['board-wrapper'], 'board-wrapper')}>
+      <DeleteToolManager draggedToolId={draggedToolId} />
       <div
         ref={gridRef}
         className="grid-stack"
         style={{ marginTop: 20 }}
       />
+      <div className={clsx(styles['loader-wrapper'], isToolsLoaded && styles['hide'], 'loader-wrapper')}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path fill="currentColor" d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z">
+            <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
+          </path>
+        </svg>
+      </div>
+      <ToastUi toasterId="my-toaster" notifyCallback={ToastRef} />
+      {dialogue}
     </div>
   );
 }
@@ -184,10 +227,15 @@ export function ActionsButtons() {
   const { tool, updateTool, gridStack } = useToolStore((state) => state)
   const roots = useRef<Map<HTMLElement, Root>>(new Map());
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);  
+  const ToastRef = useRef<((callbackProps: CallbackProps) => void) | null>(null);
   const { control, handleSubmit, reset, formState: { errors } } = useForm<ToolFormValues>({
     defaultValues: { name: 'Nike', linkTo: 'https://www.nike.com/', icon: 'https://pngimg.com/uploads/nike/nike_PNG18.png' },
   });
+  
+  function deleteTool() {
+    
+  }
 
   async function handleAddTool(values: ToolFormValues) {
     if (!gridStack) return;
@@ -203,6 +251,11 @@ export function ActionsButtons() {
 
     if (error || !data) {
       setSubmitError(error || 'La création du tool a échoué.');
+      ToastRef.current?.({
+        title : "Erreur",
+        message: `La créations de l'outil à échouer. ${error}`,
+        intent: 'error',
+      });
       return;
     }
 
@@ -225,7 +278,11 @@ export function ActionsButtons() {
       },
     );
     if (!itemSet) {
-      setSubmitError('Le tool a été créé, mais le bloc n’a pas pu être ajouté au grid.');
+      ToastRef.current?.({
+        title : "Erreur",
+        message: `L'outil n'a pas été bien ajouter à la grille`,
+        intent: 'error',
+      });
       return;
     }
     reset();
@@ -246,7 +303,6 @@ export function ActionsButtons() {
           <DialogTitle>Ajouter un outil</DialogTitle>
           <DialogContent>
             <form id="add-tool-form" className={clsx(styles['form_add_tool'])} onSubmit={handleSubmit(handleAddTool)}>
-              {submitError && <div role="alert">{submitError}</div>}
               <Controller
                 name="name"
                 control={control}
@@ -288,6 +344,35 @@ export function ActionsButtons() {
         </DialogBody>
       </DialogSurface>
     </Dialog>
+    <ToastUi toasterId="my-toaster" notifyCallback={ToastRef} />
     </div>
+    
   );
+}
+
+interface DeleteToolManagerProps {
+  draggedToolId: string | null;
+}
+
+function DeleteToolManager({ draggedToolId }: DeleteToolManagerProps) {
+
+  const { openDialogue , dialogue} = useDialogue();
+
+  function handleDeleteTool() {
+    if (draggedToolId === null) {
+      openDialogue('Aucun outil sélectionné', 'Déplacez un outil avant de demander sa suppression.');
+      return;
+    }
+    openDialogue('Supprimer un outil', `Etes-vous sûr de vouloir supprimer l'outil avec l'identifiant ${draggedToolId} ? Cette action est irréversible.`);
+  }
+
+  return (<>
+    <div className="">
+      <Button appearance="primary" size="large" icon={<TrashIcon size={32} weight="fill" />} className={clsx('btn btn-danger')}
+        onPointerUp={()=>handleDeleteTool()}
+        onPointerDown={()=>handleDeleteTool()}
+      />
+    </div>
+    {dialogue}
+  </>)  
 }
