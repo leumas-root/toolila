@@ -44,6 +44,7 @@ export async function addTool(tool: TablesInsert<'tool'>): Promise<AddToolResult
 
 	if (error) {
 		return { data: null, error: error.message };
+		console.log(error)
 	}
 
 	return { data, error: null };
@@ -80,7 +81,7 @@ export async function getTools(
 	}
 
 	const supabase = createClient(await cookies());
-	let query = supabase.from('tool').select();
+	let query = supabase.from('tool').select().eq('isPending', 'No');
 
 	if (ids && ids.length > 0) {
 		query = query.in('id', ids);
@@ -94,7 +95,6 @@ export async function getTools(
 
 	return { data, error: null };
 }
-
 
 
 
