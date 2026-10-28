@@ -1,3 +1,6 @@
+@use "sass:color";
+@use './../utils.scss' as utils;
+
 .page {
   min-height: 100vh;
   display: flex;
@@ -40,6 +43,10 @@
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
   text-align: center;
+}
+
+.submit{
+  background: color.adjust(utils.$primary-color, $lightness: -50%, $space: hsl) !important;
 }
 
 .loader {

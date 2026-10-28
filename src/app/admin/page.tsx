@@ -40,10 +40,10 @@ export default function AdminPage() {
       }
 
       const { data: adminRole, error: roleError } = await supabase
-        .from('user_roles')
+        .from('user_details')
         .select('role')
         .eq('user_id', data.user.id)
-        .eq('role', 'admin')
+        .eq('role', 'ADMIN')
         .limit(1)
 
       if (roleError || !adminRole) {
@@ -124,6 +124,7 @@ export default function AdminPage() {
             size="large"
             type="submit"
             disabled={isSubmitting}
+            className={styles.submit}
           >
             {isSubmitting ? (
               <>

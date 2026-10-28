@@ -6,7 +6,10 @@ import { createClient } from '../../utils/supabase/server';
 
 export async function requireAdmin(
   redirectOnFailure = true,
-): Promise<{ authorized: true; userId: string } | { authorized: false }> {
+): Promise<
+  | { authorized: true; pseudo: string | null }
+  | { authorized: false }
+> {
   function denyAccess(): { authorized: false } {
     if (redirectOnFailure) {
       redirect('/');
@@ -24,14 +27,14 @@ export async function requireAdmin(
   }
 
   const { data: adminRole, error: roleError } = await supabase
-    .from('user_roles')
-    .select('role')
+    .from('user_details')
+    .select('pseudo')
     .eq('user_id', userId)
-    .eq('role', 'admin')
-    .maybeSingle();
+    .eq('role', 'ADMIN')
+    .maybeSingle()
 
   if (roleError) {
-    console.error('Échec de la vérification du rôle administrateur.', roleError);
+    console.log('Échec de la vérification du rôle administrateur.');
     return denyAccess();
   }
 
@@ -39,5 +42,5 @@ export async function requireAdmin(
     return denyAccess();
   }
 
-  return { authorized: true, userId };
+  return { authorized: true, pseudo: adminRole.pseudo };
 }

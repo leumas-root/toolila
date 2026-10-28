@@ -1,0 +1,101 @@
+@use "sass:color";
+@use './../../utils.scss' as utils ;
+
+.top-side{
+    background: color.adjust(utils.$primary-color, $lightness: -50%, $space: hsl);
+    min-height: 10rem;
+    .logo{
+        max-width: 10rem;
+    }
+    article{
+        display: flex;
+        .user{
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            gap: 0.5rem;
+            flex: 0 0 20rem;
+            .description{
+                color: utils.$white;
+            }
+        }
+    }
+}
+
+.bord-side{
+    display: flex;
+    .navbar-wrapper{
+        flex: 0 0 20rem;
+        display: none;
+        @media (min-width: 992px){
+            display: block;;
+        }
+    }
+    .view-wrapper{
+        flex: 1 1 30rem;
+        :global(.bloc){
+            min-height: 2rem;
+            background: utils.$white;
+            border-radius: 1rem;
+            border: 1px solid utils.$primary-color;
+            &:global(.size-middle){
+                flex: 1 0 calc(50% - 1rem);
+                max-width: 50%;
+                
+            } 
+            &:global(.size-full){
+                flex: 1 0 100%;
+                
+            }
+            @media (min-width: 768px){
+                &:global(.md-size-middle){
+                    flex: 1 0 calc(50% - 1rem);
+                    max-width: 50%;
+                }
+                &:global(.md-size-third){
+                    flex: 1 0 calc(33% - 1rem);
+                    max-width: 33%;
+                }
+            }
+            @media (min-width: 992px){
+                &:global(.lg-size-middle){
+                    flex: 1 0 calc(50% - 1rem);
+                    max-width: 50%;
+                    
+                } 
+                &:global(.lg-size-third){
+                    flex: 1 0 calc(33% - 1rem);
+                    max-width: 33%;
+                    
+                }
+            }
+        }
+        :global(.row-label){
+            color: color.adjust(utils.$secondary-color, $lightness: 25%, $space: hsl);
+        }
+        :global(.row-value){
+            &:global(.value-unique){
+                display: inline-block;
+                font-weight: bold;
+            }
+        }
+
+        
+    }
+}
+
+.navigation{
+    list-style-type: none;
+    a{
+        display: block;
+        color: color.adjust(utils.$black, $lightness: 50%, $space: hsl);
+        font-weight: bold;
+        &.active{
+            background: color.adjust(utils.$primary-color, $lightness: -25%, $space: hsl);
+            color: utils.$white;
+        }
+        &:hover:not(.active){
+            background: color.adjust(utils.$primary-color, $lightness: 75%, $space: hsl);
+        }
+    }
+}

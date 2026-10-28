@@ -11,7 +11,7 @@ export default function ImageWrapper({isExternal, src, alt, classNameWrapper}:Im
     const imageOptimized = isExternal ? {unoptimized: true} : {unoptimized: false};
 
     return <>
-        <div className={clsx('img-wrapper', classNameWrapper)}>
+        <div className={clsx('image-wrapper', classNameWrapper)}>
             <Image
                 src={src}
                 fill

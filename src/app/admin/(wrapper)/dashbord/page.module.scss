@@ -1,0 +1,115 @@
+@use "sass:color";
+@use "./../../../utils.scss" as utils;
+
+.view-container{
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 1rem;
+    line-height: normal;
+    transform: translateY(-100px);
+}
+
+.recentTools{
+    display: flex;
+    align-items: flex-end;
+    justify-content: left;
+    flex-wrap: wrap;
+    gap: 2rem;
+    .monthSection{
+        margin-top: 1.5rem;
+        flex: 0 0 10rem;
+        width: 33%;
+    }
+    .monthCurrent{
+        flex: 1 0 20rem;
+        div{
+            border: 1px solid utils.$primary-color;
+            border-radius: 1rem;
+            background: color.adjust(utils.$primary-color, $lightness: 25%, $space: hsl);
+        }
+        .monthTitle{
+            color: color.adjust(utils.$black, $lightness: 25%, $space: hsl);
+        }
+    }
+}
+
+.monthTitle{
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: color.adjust(utils.$black, $lightness: 50%, $space: hsl);
+}
+
+.toolList{
+    display: grid;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.toolItem{
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2rem;
+    .toolIcon{
+        display: inline-flex;
+        flex: 0 0 1.5rem;
+        align-items: center;
+        justify-content: center;
+        height: 1.5rem;
+    }
+    .toolName{
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        color: color.adjust(utils.$black, $lightness: 25%, $space: hsl);
+    }
+}
+
+
+
+.toolDate{
+    margin-left: auto;
+    color: color.adjust(utils.$black, $lightness: 45%, $space: hsl);
+    white-space: nowrap;
+}
+
+.previousMonths{
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+
+    @media (min-width: 768px){
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.moreDetails{
+    margin-top: 1rem;
+}
+
+.seeMore{
+    width: fit-content;
+    color: color.adjust(utils.$secondary-color, $lightness: -10%, $space: hsl);
+    cursor: pointer;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.userBreakdown{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1rem;
+    color: color.adjust(utils.$black, $lightness: 45%, $space: hsl);
+
+    p{
+        margin: 0;
+    }
+
+    span{
+        margin-left: 0.35rem;
+    }
+}

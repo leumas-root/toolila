@@ -85,12 +85,12 @@ export async function getTools(
 	const supabase = createClient(await cookies());
 	let query = supabase.from('tool').select();
 
-	if (!authorized) {
-		query = query.eq('isPending', 'No');
-	}
-
 	if (ids && ids.length > 0) {
 		query = query.in('id', ids);
+	}
+
+	if (!authorized) {
+		query = query.eq('status', 'Enabled');
 	}
 
 	const { data, error } = await query;
@@ -103,3 +103,54 @@ export async function getTools(
 }
 
 
+export async function setTools(
+	{ column, value, ...target }:
+		| { column: 'status'; value: boolean; ids: string[] }
+		| { column: 'name_tool'; value: string; id: string }
+) {
+	const { authorized } = await requireAdmin(false);
+	if (!authorized) {
+		return { data: null, error: 'Accès administrateur requis.' };
+	}
+
+	const supabase = createClient(await cookies());
+
+	if (column === 'status' && 'ids' in target) {
+		if (target.ids.length === 0 || target.ids.some((id) => !id)) {
+			return { data: null, error: 'La liste des identifiants est invalide.' };
+		}
+
+		const { data, error } = await supabase
+			.from('tool')
+			.update({ status: value ? 'Enabled' : 'Disabled' })
+			.in('id', target.ids)
+			.select();
+
+		if (error) {
+			return { data: null, error: error.message };
+		}
+
+		return { data, error: null };
+	}
+
+	const name = typeof value === 'string' ? value.trim() : '';
+	if (!('id' in target) || !target.id) {
+		return { data: null, error: 'L’identifiant du tool est invalide.' };
+	}
+	if (!name) {
+		return { data: null, error: 'Le nom du tool est requis.' };
+	}
+
+	const { data, error } = await supabase
+		.from('tool')
+		.update({ name_tool: name })
+		.eq('id', target.id)
+		.select()
+		.single();
+
+	if (error) {
+		return { data: null, error: error.message };
+	}
+
+	return { data, error: null };
+}

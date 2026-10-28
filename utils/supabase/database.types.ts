@@ -19,48 +19,51 @@ export type Database = {
           dateCreated: string
           icon_tool: string | null
           id: string
-          isActive: string
-          isPending: string
           link_tool: string | null
           name_tool: string
           position: Json | null
+          status: string
         }
         Insert: {
           dateCreated?: string
           icon_tool?: string | null
           id?: string
-          isActive?: string
-          isPending?: string
           link_tool?: string | null
           name_tool: string
           position?: Json | null
+          status?: string
         }
         Update: {
           dateCreated?: string
           icon_tool?: string | null
           id?: string
-          isActive?: string
-          isPending?: string
           link_tool?: string | null
           name_tool?: string
           position?: Json | null
+          status?: string
         }
         Relationships: []
       }
-      user_roles: {
+      user_details: {
         Row: {
-          created_at: string
+          name: string | null
+          pseudo: string | null
           role: string
+          sirname: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string
+          name?: string | null
+          pseudo?: string | null
           role?: string
+          sirname?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string
+          name?: string | null
+          pseudo?: string | null
           role?: string
+          sirname?: string | null
           user_id?: string
         }
         Relationships: []

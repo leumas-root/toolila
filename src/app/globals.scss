@@ -1,3 +1,4 @@
+@use "sass:color";
 @use './utils.scss' as utils;
 @use "gridstack/dist/gridstack.css";
 
@@ -23,6 +24,12 @@
   background-color: transparent;
 }
 
+.image-wrapper{
+  img{
+    position: relative !important;
+  }
+}
+
 
 .logo{
     max-width: 10rem;
@@ -41,16 +48,16 @@
   box-sizing: border-box;
 }
 
+a{
+  text-decoration: none;
+}
+
 body{
-  background-color: lighten(utils.$secondary-color, 75);
+  background-color: color.adjust(utils.$secondary-color, $lightness: 75%, $space: hsl);
 }
 
 .fxugw4r{
-  background-color: lighten(utils.$secondary-color, 75) !important;
-}
-
-.header-logo{
-
+  background-color: color.adjust(utils.$secondary-color, $lightness: 75%, $space: hsl) !important;
 }
 
 .grid-stack-item-content{
@@ -81,7 +88,7 @@ body{
     background-color: #e90000;
     color: utils.$white;
     &:hover {
-      background-color: darken(#e90000, 10%);
+      background-color: color.adjust(#e90000, $lightness: -10%, $space: hsl);
     }
   }
 }
@@ -109,6 +116,51 @@ $spacings: (
   10: 40px,
   12: 48px
 );
+
+.text {
+  @each $name, $value in $spacings {
+    @if $name >= 2 and $name <= 5 {
+      &.text-#{$name} {
+        font-size: $value;
+      }
+    }
+  }
+
+  @each $screen, $width in $breakpoints {
+    @media (min-width: $width) {
+      @each $name, $value in $spacings {
+        @if $name >= 2 and $name <= 5 {
+          &.#{$screen}-text-#{$name} {
+            font-size: $value;
+          }
+        }
+      }
+    }
+  }
+}
+
+.display {
+  @each $name, $value in $spacings {
+    @if $name >= 6 and $name <= 12 {
+      &.display-#{$name} {
+        font-size: $value;
+      }
+    }
+  }
+
+  @each $screen, $width in $breakpoints {
+    @media (min-width: $width) {
+      @each $name, $value in $spacings {
+        @if $name >= 6 and $name <= 12 {
+          &.#{$screen}-display-#{$name} {
+            font-size: $value;
+            line-height: calc($value - 5px);
+          }
+        }
+      }
+    }
+  }
+}
 
 .p {
   @each $name, $value in $spacings {

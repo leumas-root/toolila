@@ -1,0 +1,372 @@
+@use "sass:color";
+@use "./../../../utils.scss" as utils;
+
+.view-container{
+    transform: translateY(-125px);
+    min-height: calc(100% + 125px);
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+}
+
+.selection{
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: utils.$white;
+    font-weight: 600;
+}
+
+.selectionCount{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: utils.$white;
+    color: utils.$secondary-color;
+    font-size: 0.8rem;
+}
+
+.actions{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+
+    .delete,
+    .setValide{
+        border-radius: 0.65rem;
+        font-weight: 600;
+    }
+
+    .delete:not(:disabled){
+        border-color: #e4b7b7;
+        color: #a52c2c;
+    }
+
+    .setValide:not(:disabled){
+        background: #197a50;
+    }
+}
+
+.splitActions{
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 0.65rem;
+
+    .setValide,
+    .splitChevron{
+        height: 2.5rem;
+        min-height: 2.5rem;
+        border: 0;
+        border-radius: 0;
+        background: #197a50;
+        color: utils.$white;
+
+        &:hover:not(:disabled){
+            background: color.adjust(#197a50, $lightness: -6%, $space: hsl);
+        }
+
+        &:disabled{
+            background: color.adjust(#197a50, $lightness: 20%, $space: hsl);
+            color: color.adjust(utils.$white, $lightness: -10%, $space: hsl);
+        }
+    }
+
+    .setValide{
+        border-right: 1px solid rgba(utils.$white, 0.28);
+        padding: 0 1rem;
+    }
+
+    .splitChevron{
+        min-width: 2.5rem;
+        padding: 0;
+    }
+}
+
+.table-wrapper{
+    overflow: hidden;
+    border: 1px solid color.adjust(utils.$secondary-color, $lightness: 65%, $space: hsl);
+    border-radius: 1rem;
+    background: utils.$white;
+    box-shadow: 0 0.6rem 2rem rgba(utils.$secondary-color, 0.08);
+}
+
+.tableHeading{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.35rem 1.5rem;
+    border-bottom: 1px solid color.adjust(utils.$secondary-color, $lightness: 72%, $space: hsl);
+
+    h1{
+        margin: 0;
+        color: utils.$secondary-color;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    p{
+        margin: 0.35rem 0 0;
+        color: color.adjust(utils.$secondary-color, $lightness: 25%, $space: hsl);
+        font-size: 0.9rem;
+    }
+}
+
+.totalCount{
+    flex: 0 0 auto;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    background: color.adjust(utils.$primary-color, $lightness: 36%, $space: hsl);
+    color: color.adjust(utils.$secondary-color, $lightness: -5%, $space: hsl);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.tableScroll{
+    overflow-x: auto;
+
+    table{
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: left;
+    }
+
+    thead{
+        background: color.adjust(utils.$secondary-color, $lightness: 75%, $space: hsl);
+    }
+
+    th{
+        padding: 0.85rem 1rem;
+        color: color.adjust(utils.$secondary-color, $lightness: 10%, $space: hsl);
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    td{
+        padding: 0.95rem 1rem;
+        border-top: 1px solid color.adjust(utils.$secondary-color, $lightness: 77%, $space: hsl);
+        color: utils.$secondary-color;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    tbody tr{
+        transition: background-color 140ms ease;
+
+        &:hover{
+            background: color.adjust(utils.$primary-color, $lightness: 43%, $space: hsl);
+        }
+    }
+}
+
+.checkboxCell{
+    width: 3.25rem;
+    text-align: center;
+
+    input{
+        width: 1rem;
+        height: 1rem;
+        accent-color: utils.$primary-color;
+        cursor: pointer;
+    }
+
+    input:disabled{
+        cursor: not-allowed;
+    }
+}
+
+.selectedRow{
+    background: color.adjust(utils.$primary-color, $lightness: 43%, $space: hsl);
+}
+
+.toolName{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 18rem;
+    font-weight: 650;
+}
+
+.toolNameEditor{
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    cursor: text;
+}
+
+.nameField{
+    flex: 1 1 auto;
+    min-width: 0;
+    :global(.fui-Input){
+        border: 1px solid transparent;
+    }
+}
+
+.nameInput{
+    width: 100%;
+    min-width: 0;
+
+    :global(input:disabled){
+        border-color: transparent;
+        background: transparent;
+        color: utils.$secondary-color;
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    &:not(:global(.fui-Input--disabled)){
+        background: utils.$white;
+    }
+}
+
+.nameActions{
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.15rem;
+
+    button{
+        min-width: 2rem;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        color: color.adjust(utils.$secondary-color, $lightness: 8%, $space: hsl);
+
+        &:first-child:hover{
+            color: #18764b;
+        }
+
+        &:last-child:hover{
+            color: #a52c2c;
+        }
+    }
+}
+
+.toolIcon{
+    display: inline-flex;
+    flex: 0 0 2.5rem;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border: 1px solid color.adjust(utils.$secondary-color, $lightness: 72%, $space: hsl);
+    border-radius: 0.75rem;
+    background: color.adjust(utils.$primary-color, $lightness: 43%, $space: hsl);
+    color: color.adjust(utils.$primary-color, $lightness: -18%, $space: hsl);
+
+    :global(.image-wrapper){
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 0.35rem;
+    }
+
+    :global(img){
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.toolLink{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 16rem;
+    color: color.adjust(utils.$secondary-color, $lightness: -5%, $space: hsl);
+    text-decoration: none;
+
+    &:hover{
+        color: color.adjust(utils.$primary-color, $lightness: -20%, $space: hsl);
+        text-decoration: underline;
+    }
+}
+
+.dateCell,
+.muted{
+    color: color.adjust(utils.$secondary-color, $lightness: 28%, $space: hsl) !important;
+    white-space: nowrap;
+}
+
+.status{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.statusActive{
+    background: #e6f5ed;
+    color: #18764b;
+}
+
+.statusPending{
+    background: #fff3dc;
+    color: #94600b;
+}
+
+.statusInactive{
+    background: color.adjust(utils.$secondary-color, $lightness: 76%, $space: hsl);
+    color: color.adjust(utils.$secondary-color, $lightness: 18%, $space: hsl);
+}
+
+.statusDot{
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.messageCell,
+.messageError{
+    padding: 3rem 1.5rem !important;
+    color: color.adjust(utils.$secondary-color, $lightness: 25%, $space: hsl) !important;
+    text-align: center;
+}
+
+.messageError{
+    margin: 0;
+    color: #a52c2c !important;
+}
+
+@media (max-width: 600px){
+    .header{
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .tableHeading{
+        padding: 1.1rem;
+    }
+
+    .tableScroll{
+        th,
+        td{
+            padding: 0.8rem 0.7rem;
+        }
+    }
+}
