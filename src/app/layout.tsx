@@ -1,7 +1,9 @@
-import { FluentProvider, teamsLightTheme, createLightTheme, BrandVariants, Theme} from '@fluentui/react-components';
+import { FluentProvider, createLightTheme, BrandVariants, Theme} from '@fluentui/react-components';
 import "./globals.scss";
 import { Metadata } from 'next';
 import { ToolStoreProvider } from '@/lib/store/tool/provider';
+import Space from './components/Space';
+import AnonymousUserInitializer from './components/AnonymousUserInitializer';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -26,8 +28,10 @@ const myNewTheme: BrandVariants = {
   150: "#FFB88E",
   160: "#FFCDB0"
 };
+const primaryColor = myNewTheme[120];
  const lightTheme: Theme = {
    ...createLightTheme(myNewTheme), 
+   colorBrandBackground: primaryColor,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -38,7 +42,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ToolStoreProvider>
             {children}
           </ToolStoreProvider>
-        </FluentProvider>,
+          <AnonymousUserInitializer />
+          <Space />
+        </FluentProvider>
       </body>
     </html>
   );

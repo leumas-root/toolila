@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -14,6 +14,29 @@ export type Database = {
   }
   public: {
     Tables: {
+      owner: {
+        Row: {
+          tool_id: string
+          user_id: string
+        }
+        Insert: {
+          tool_id: string
+          user_id: string
+        }
+        Update: {
+          tool_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tool"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tool: {
         Row: {
           dateCreated: string
@@ -23,6 +46,7 @@ export type Database = {
           name_tool: string
           position: Json | null
           status: string
+          url_root_tool: string | null
         }
         Insert: {
           dateCreated?: string
@@ -32,6 +56,7 @@ export type Database = {
           name_tool: string
           position?: Json | null
           status?: string
+          url_root_tool?: string | null
         }
         Update: {
           dateCreated?: string
@@ -41,6 +66,7 @@ export type Database = {
           name_tool?: string
           position?: Json | null
           status?: string
+          url_root_tool?: string | null
         }
         Relationships: []
       }

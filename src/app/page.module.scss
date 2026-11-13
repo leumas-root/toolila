@@ -3,15 +3,48 @@
 
 .btn-actions-wrapper{
     position:fixed;
-    bottom: 10px;
+    bottom: 70px;
     right: 50%;
     transform: translateX(50%);
     z-index: 9000;
     background: utils.$white;
-    min-width: 10rem;
-    border-radius: 0.5rem;
+    min-width: 3rem;
+    border-radius: 20px;
     -webkit-box-shadow: 0px 10px 15px 1px #1313135c; 
     box-shadow: 0px 10px 15px 1px #1313135c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.5rem;
+    @media screen and (max-width: 480px) {
+        gap: 0.25rem;
+    }
+}
+
+.btn-actions{
+    flex-wrap: wrap;
+    flex-direction: column;
+    max-width: auto !important;
+    padding: 0;
+    background-color: color.adjust(utils.$black, $lightness: 85%, $space: hsl) !important;
+    border-color: color.adjust(utils.$black, $lightness: 90%, $space: hsl) !important;
+    border-radius: 25% !important;
+    font-size: 2rem !important;
+    color: color.adjust(utils.$black, $lightness: 50%, $space: hsl) !important;
+    :global(.rywnvv2){
+        height: auto !important;
+        width: auto !important;
+    }
+    svg{
+        height: inherit !important;
+        width: inherit !important;
+    }
+    &.active{
+        background-color: utils.$primary-color !important;
+        color: utils.$white !important;
+        border-color: utils.$primary-color !important;
+    }
 }
 
 form.form_add_tool{
@@ -33,18 +66,22 @@ form.form_add_tool{
 .board-wrapper{
     position: relative;
     .loader-wrapper{
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        z-index: 9999;
+        z-index: 99999;
         &.hide{
             visibility: hidden;
         }
         svg{
-            width: 200px;
-            height: 200px;
+            width: 500px;
+            height: 500px;
             color: utils.$primary-color;
+        }
+        object{
+            max-height: 200px;
+            height: 20vh;
         }
     }
 }

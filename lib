@@ -1,0 +1,12 @@
+feat	    Nouvelle fonctionnalité	feat(auth): add admin login
+fix	        Correction de bug	fix(tools): correct status validation
+refactor	Réorganisation du code sans changer le comportement	refactor(auth):     simplify role checks
+style	    Formatage, espaces, mise en forme	style(ui): format components
+docs	    Documentation	docs(readme): update installation guide
+test	    Ajout ou modification de tests	test(auth): add login tests
+perf	    Amélioration des performances	perf(tools): optimize database queries
+chore	    Maintenance et configuration	chore(deps): update dependencies
+
+git commit -m "feat(admin): add tool management page"
+git commit -m "fix(supabase): correct RLS policy"
+git commit -m "refactor(tools): replace isActive with status"

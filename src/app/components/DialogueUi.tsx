@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Dialog,
   DialogSurface,
@@ -14,11 +14,11 @@ export function useDialogue() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
-  function openDialogue(title: string, body: string) {
+  const openDialogue = useCallback((title: string, body: string) => {
     setTitle(title);
     setBody(body);
     setOpen(true);
-  }
+  }, []);
 
   const dialogue = (
     <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>

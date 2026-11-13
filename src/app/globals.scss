@@ -60,23 +60,33 @@ body{
   background-color: color.adjust(utils.$secondary-color, $lightness: 75%, $space: hsl) !important;
 }
 
-.grid-stack-item-content{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  color: utils.$black;
-  text-decoration: none;
-  div.img-wrapper{
+.grid-stack-item{
+  div.image-wrapper{
     position: relative;
-    width: 4rem;
-    height: 4rem;
+    width: 3rem;
+    height: 3rem;
     img{
       object-fit: contain;
     }
   }
   div.name{
     width: 100%;
+  }
+  .grid-stack-item-container{ 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    color: utils.$black;
+    text-decoration: none;
+  }
+
+  &:hover{
+    transform: scale(1.05);
+    transition: transform 2s ease-in-out;
+    border: 2px solid utils.$primary-color;
+    border-radius: 0.5rem;
+    text-decoration: none;
   }
 }
 

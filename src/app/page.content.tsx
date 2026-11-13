@@ -1,24 +1,26 @@
 
 'use client';
 
-import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { createRoot, Root } from 'react-dom/client';
-import { GridStack, type GridItemHTMLElement, type GridStackWidget } from 'gridstack';
+import { createContext, type FormEvent, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import type { Root } from 'react-dom/client';
+import type { GridStack as GridStackInstance } from 'gridstack';
+import { GridItemHTMLElement, GridStack, useGridStack, type GridStackOptions } from "gridstack/dist/react";
 import styles from "./page.module.scss";
 import { clsx } from "clsx";
 import 'gridstack/dist/gridstack.min.css';
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Field, Input, Tooltip } from '@fluentui/react-components';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Field, Input, Skeleton, SkeletonItem, Tooltip } from '@fluentui/react-components';
 import Link from 'next/link';
 import { PlusIcon } from '@phosphor-icons/react/dist/icons/Plus';
-import { useToolStore } from '@/lib/store/tool/provider';
+import type { Tool } from '@/lib/store/tool/store';
 import { Controller, useForm } from 'react-hook-form';
-import { addTool, getTools, updatePositionTool } from '@/lib/tool.actions';
+import { addTool, getTools, setTools } from '@/lib/tool.actions';
 import type { Tables } from '../../utils/supabase/database.types';
 import ImageWrapper from './components/ImageWrapper';
 import { type CallbackProps, ToastUi } from './components/Toast';
 import { useDialogue } from './components/DialogueUi';
-import { TrashIcon } from '@phosphor-icons/react';
-import { title } from 'process';
+import { MagnifyingGlassIcon, TrashIcon } from '@phosphor-icons/react';
+import { clientDb, ClientDbProps } from '@/lib/clientdb.module';
+import { ToolViewportProvider, useToolViewport } from '@/lib/store/tool/ToolViewportContext';
 
 type ToolFormValues = {
   name: string;
@@ -26,42 +28,91 @@ type ToolFormValues = {
   icon: string;
 };
 
-type GridItemRequest = {
-  grid: GridStack;
-  widget: GridStackWidget;
-  content: ReactNode;
-};
+const ItemContent = ({id, name }: {id?:string; name?: string;}) => {
+  const {detailsById, errorsById} = useToolViewport();
+  const [localToolResult, setLocalToolResult] = useState<{
+    id: string;
+    detailError: string;
+    tool: Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'> | null;
+  } | null>(null);
+  const detailError = id ? errorsById[id] : undefined;
+  const localToolResultForCurrentTool =
+    localToolResult &&
+    localToolResult.id === id &&
+    localToolResult.detailError === detailError
+      ? localToolResult
+      : null;
+  const storedInLocalDb = localToolResultForCurrentTool?.tool ?? null;
 
-function ajouterComposant(
-  item: GridItemRequest,
-  roots: Map<HTMLElement, Root>,
-  onItemAdded: (item: GridItemHTMLElement) => boolean,
-): boolean {
-  const gridItem = item.grid.addWidget(item.widget);
-  const container = gridItem?.querySelector('.grid-stack-item-content');
-  if (!gridItem || !container) return false;
+  useEffect(() => {
+    let isActive = true;
 
-  const root = createRoot(container);
-  roots.set(gridItem, root);
-  root.render(item.content);
+    if (!id || !detailError) return;
 
-  return onItemAdded(gridItem);
-}
+    const toolId = id;
+    const toolDetailError = detailError;
 
-const ItemContent = ({ id, name, linkTo, icon }: { id: string; name?: string; linkTo?: string; icon?: string }) => {
-  const isExternalLink = /^https?:\/\//i.test(linkTo || '');
+    async function loadLocalTool() {
+      let localStore: ClientDbProps<
+        Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>
+      > | null = null;
 
+      try {
+        localStore = await clientDb<
+          Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>
+        >('Nootin').init('personals', 'id', ['name_tool', 'id']);
+        if (!isActive) return;
+        const result = await localStore.get([toolId]);
+        if (result.error) throw new Error(result.error);
+        if (isActive) {
+          setLocalToolResult({
+            id: toolId,
+            detailError: toolDetailError,
+            tool: result.data?.[0] ?? null,
+          });
+        }
+      } catch (error) {
+        console.error(`Échec de la récupération locale de l’outil ${toolId}.`, error);
+        if (isActive) {
+          setLocalToolResult({ id: toolId, detailError: toolDetailError, tool: null });
+        }
+      } finally {
+        localStore?.close();
+      }
+    }
+
+    void loadLocalTool();
+
+    return () => {
+      isActive = false;
+    };
+  }, [detailError, id]);
+
+  const details = id ? detailsById[id] : undefined;
+  const linkTool = details?.link_tool || storedInLocalDb?.link_tool || '#';
+  const iconTool = details?.icon_tool || storedInLocalDb?.icon_tool || '/logo_default.svg';
+  const isExternalLink = /^https?:\/\//i.test(linkTool);
+  const isLocalLoading = Boolean(
+    id && detailError && !localToolResultForCurrentTool,
+  );
+
+  if (!details && (!detailError || isLocalLoading)) return (
+    <Skeleton animation={'wave'}  aria-label="Loading Content">
+      <SkeletonItem shape='square' size={56} />
+    </Skeleton>
+  );
   return (
     <Tooltip content={name || 'Outils'} relationship="label" >
       <Link
-        href={linkTo || '#'}
-        className='grid-stack-item-content'
+        href={linkTool}
+        className='grid-stack-item-container'
         target={isExternalLink ? '_blank' : undefined}
         rel={isExternalLink ? 'noopener noreferrer' : undefined}
       >
         <ImageWrapper 
+          classNameWrapper=''
           isExternal={true} 
-          src={icon || '/logo_default.svg'} 
+          src={iconTool} 
           alt={name ? `Icône ${name}` : 'Icône par défaut'} 
         />
         <div className="name">{name || 'Outils'}</div>
@@ -70,153 +121,316 @@ const ItemContent = ({ id, name, linkTo, icon }: { id: string; name?: string; li
   );
 }
 
-function persistToolPosition(item: GridItemHTMLElement, callback? : (isUpdated : boolean)=>void) {
-  const node = item.gridstackNode;
-  const toolId = node?.id;
+type GridWidgetControllerActions = {
+  loadTools: (tools: Tool[]) => boolean;
+};
 
-  if (
-    !toolId ||
-    typeof node?.x !== 'number' ||
-    typeof node.y !== 'number'
-  ) {
-    return;
+const GridWidgetControllerContext = createContext<GridWidgetControllerActions | null>(null);
+
+function useGridWidgetController() {
+  const actions = useContext(GridWidgetControllerContext);
+  if (!actions) {
+    throw new Error('useGridWidgetController doit être utilisé dans GridWidgetController.');
   }
-
-  void updatePositionTool(toolId, {
-    x: node.x,
-    y: node.y,
-  }).then(({ error }) => {
-    callback?.(!error);
-  });
+  return actions;
 }
 
-export default function Board() {
-  const gridRef = useRef<HTMLDivElement>(null);
-  const gridInstance = useRef<GridStack | null>(null);
-  const roots = useRef<Map<HTMLElement, Root>>(new Map());
-  const ToastRef = useRef<((callbackProps: CallbackProps) => void) | null>(null);
-  const [isToolsLoaded, setIsToolsLoaded] = useState(false);
-  const [draggedToolId, setDraggedToolId] = useState<string | null>(null);
-  const { updateGridRef } = useToolStore((state) => state)
-  const { openDialogue , dialogue} = useDialogue();
+const GridWidgetController = ({
+  tools,
+  autoLoad = false,
+  children,
+}: {
+  tools: Tool[] | undefined;
+  autoLoad?: boolean;
+  children: ReactNode;
+}) => {
+  const { addWidget, grid } = useGridStack();
+  const gridRef = useRef<GridStackInstance | null>(null);
+  const addedToolIds = useRef(new Set<string>());
+  const {registerToolElement}=useToolViewport()
 
-  function dragAction(item : null | GridItemHTMLElement) {
-    item && persistToolPosition(item, (isUpdate)=>{
-      if (isUpdate) return;
-      ToastRef.current?.({
-        title : "Position non enregistré",
-        message: `La nouvelle position de l'outil n'est pas sauvegarder. Vérifiez votre connexion internet et actualisez`,
-        intent: 'error',
-      });
-    })
-    setDraggedToolId(item?.gridstackNode?.id ?? null);
-  }
   useEffect(() => {
-    if (!gridRef.current) return;
-
-    let isActive = true;
-    const grid = GridStack.init(
-      {
-        column: 12,
-        cellHeight: 100,
-        margin: 8,
-        mode: 'float',
-        columnOpts: {
-          columnWidth: 100,
-          columnMax: 12,
-        },
-      },
-      gridRef.current
-    );
-    if (!grid) return; 
-    grid.on('dragstop', (_event, item) => {
-      dragAction(item);
-    });
-    gridInstance.current = grid;
-    updateGridRef(gridInstance);
-
-    function ajouterToolEnGrille(tool: Tables<'tool'>) {
-      const savedPosition =
-        typeof tool.position === 'object' && tool.position !== null && !Array.isArray(tool.position)
-          ? tool.position
-          : {};
-      if (!grid) return;
-      const itemSet = ajouterComposant(
-        {
-          grid,
-          widget: {
-            id: String(tool.id),
-            x: typeof savedPosition.x === 'number' ? savedPosition.x : 0,
-            y: typeof savedPosition.y === 'number' ? savedPosition.y : 0,
-            w: 1,
-            h: 1,
-            content: '',
-            noResize: true,
-          },
-          content: (
-            <ItemContent
-              id={String(tool.id)}
-              name={tool.name_tool}
-              linkTo={tool.link_tool || undefined}
-              icon={tool.icon_tool ?? undefined}
-            />
-          ),
-        },
-        roots.current,
-        (addedItem) => Boolean(addedItem.gridstackNode?.id),
-      );
-      if (!itemSet) {
-        if (!ToastRef.current) return;
-        ToastRef.current?.({
-          message: `Le tool "${tool.name_tool}" a été créé, mais le bloc n’a pas pu être ajouté au grid.`,
-          intent: 'error',
-        });
-        return;
-      }
-    }
-
-    async function chargerTools() {
-      const { data, error } = await getTools();
-      if (!isActive) return;
-      if (error) {
-        openDialogue('La récuperation à échoué', `La grille n' pas pu être mise à jour. Vérifier votre connexion internet. ${error}`);
-        setIsToolsLoaded(true)
-        return;
-      }
-      data?.forEach(ajouterToolEnGrille);
-      setTimeout(() => {
-        setIsToolsLoaded(true);
-      }, 800);
-    }
-
-    void chargerTools();
+    gridRef.current = grid;
 
     return () => {
-      isActive = false;
-      roots.current.forEach(root => root.unmount());
-      roots.current.clear();
-      grid && grid.destroy(false);
-      gridInstance.current = null;
-      updateGridRef(gridInstance);
+      if (gridRef.current === grid) {
+        gridRef.current = null;
+      }
     };
-  }, []);
+  }, [grid]);
+
+  const loadTools = useCallback((tools: Tool[]) => {
+    if (!gridRef.current) return false;
+    let allToolsLoaded = true;
+
+    for (const tool of tools) {
+      const id = String(tool.id);
+      if (addedToolIds.current.has(id)) continue;
+      const item = addWidget({
+        id,
+        x: tool.position.x,
+        y: tool.position.y,
+        w: 1,
+        h: 2,
+        component: 'ItemContent',
+        props: {
+          id: id,
+          name: tool.name_tool,
+        },
+        noResize: true,
+      });
+
+      if (!item) {
+        allToolsLoaded = false;
+        continue;
+      }
+
+      addedToolIds.current.add(id);
+      registerToolElement(id, item);
+    }
+
+    return allToolsLoaded;
+  }, [addWidget, registerToolElement]);
+
+  useEffect(() => {
+    if (autoLoad && tools) loadTools(tools);
+  }, [autoLoad, loadTools, tools]);
 
   return (
-    <div className={clsx(styles['board-wrapper'], 'board-wrapper')}>
+    <GridWidgetControllerContext.Provider value={{ loadTools }}>
+      {children}
+    </GridWidgetControllerContext.Provider>
+  );
+};
+
+export default function Board() {
+  const [gridOptions] = useState<GridStackOptions>({
+    column: 12,
+    cellHeight: 50,
+    mode: 'float',
+    columnOpts: {
+      columnWidth: 100,
+      columnMax: 12,
+      breakpointForWindow: false,
+    }
+  });
+  const ToastRef = useRef<((callbackProps: CallbackProps) => void) | null>(null);
+  const [draggedToolId, setDraggedToolId] = useState<string | null>(null);
+  const { openDialogue, dialogue } = useDialogue();  
+  const [toolsList, setToolsList] = useState<Record<string, Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>> | null>(null);
+  const [loads, setLoads] = useState<{local : boolean, remote:boolean}|null>(null)
+  const listKeys = useRef(new Set<string>())
+
+  const dragAction = useCallback(async(_: Event, el: GridItemHTMLElement)=>{
+    const node = el.gridstackNode
+    const id = node?.id
+    const x = el.gridstackNode?.x
+    const y = el.gridstackNode?.y
+    setDraggedToolId(id||null)
+    const position = {
+      x : !Number(x) ? 0 : Number(x),
+      y : !Number(y) ? 0 : Number(y),
+    }
+
+    if (!id) {
+      openDialogue('La mise à jour a échoué', 'L’identifiant de l’outil est manquant.');
+      return;
+    }
+
+    let serverError: string;
+    try {
+      const {error, data} = await setTools(
+        {
+          column : 'position',
+          value : position,
+          id
+        }
+      )
+
+      if (!error && data) return;
+      serverError = error || 'Aucune donnée retournée par le serveur.';
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : String(error);
+    }
+
+    let remoteToolsStore: ClientDbProps<
+      Pick<Tables<'tool'>, 'id' | 'name_tool' | 'position'>
+    > | null = null;
+    try {
+      remoteToolsStore = await clientDb<
+        Pick<Tables<'tool'>, 'id' | 'name_tool' | 'position'>
+      >('Nootin').init('remote', 'id', ['name_tool', 'id']);
+
+      const existingResult = await remoteToolsStore.get([id]);
+      if (existingResult.error) throw new Error(existingResult.error);
+
+      if (existingResult.data?.length) {
+        const updateResult = await remoteToolsStore.update(id, { position });
+        if (updateResult.error || !updateResult.data) {
+          throw new Error(updateResult.error || 'La position locale n’a pas été mise à jour.');
+        }
+      } else {
+        const name_tool = toolsList?.[id]?.name_tool;
+        if (!name_tool) {
+          throw new Error(`Le nom de l’outil ${id} est introuvable pour la sauvegarde locale.`);
+        }
+
+        const insertResult = await remoteToolsStore.insert([{ id, name_tool, position }]);
+        if (insertResult.error || !insertResult.data?.length) {
+          throw new Error(insertResult.error || 'L’outil n’a pas été créé dans le stockage local.');
+        }
+      }
+
+      setToolsList((current) => {
+        const previousTool = current?.[id];
+        return {
+          ...current,
+          [id]: {
+            ...previousTool,
+            id,
+            name_tool: previousTool?.name_tool ?? toolsList?.[id]?.name_tool ?? '',
+            position,
+            status: previousTool?.status ?? 'shared',
+            link_tool: previousTool?.link_tool ?? '',
+            icon_tool: previousTool?.icon_tool ?? '',
+          },
+        };
+      });
+    } catch (error) {
+      const localError = error instanceof Error ? error.message : String(error);
+      console.error(`Échec de la sauvegarde locale de la position de l’outil ${id}.`, error);
+      openDialogue(
+        'La mise à jour a échoué',
+        `ID : ${id}. Erreur serveur : ${serverError} Erreur locale : ${localError}`,
+      );
+    } finally {
+      remoteToolsStore?.close();
+    }
+  }, [openDialogue, toolsList])
+
+  const gridTools = useMemo<Tool[]>(() => {
+    if (toolsList === null) return [];
+    if (!loads?.local) return [];
+    const localTools = Object.values(toolsList).map((tool) => {
+      const savedPosition =
+        typeof tool.position === 'object' &&
+        tool.position !== null &&
+        !Array.isArray(tool.position)
+          ? tool.position
+          : null;
+
+      return {
+        id: tool.id,
+        name_tool: tool.name_tool,
+        link_tool: tool.link_tool ?? undefined,
+        icon_tool: tool.icon_tool ?? undefined,
+        position: {
+          x: typeof savedPosition?.x === 'number' ? savedPosition.x : 0,
+          y: typeof savedPosition?.y === 'number' ? savedPosition.y : 0,
+        },
+      };
+    });
+
+    return [...localTools];
+  }, [loads?.local, toolsList]);
+
+  useEffect(() => {
+    let isActive = true;
+    async function fetchTools() {
+      
+      try {
+        const result = await getTools(undefined, true);
+        if (!isActive) return;
+        if (result.error) {
+          openDialogue('La récupération a échoué', result.error);
+          return;
+        }
+        const remoteTools =
+          result.data?.filter(item => !listKeys.current.has(item.id)) || [];
+
+        setToolsList((c)=>{
+          const previous = {...c}
+
+          for (const item of remoteTools) {
+            previous[item.id] = {...item,  status:'shared', link_tool: '', icon_tool:''}
+          }
+          return previous
+        });
+        setLoads((c)=>({
+          remote : true,
+          local : (c && c.local) || false
+        }))
+      } catch (error) {
+        if (!isActive) return;
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Échec du chargement des outils.', error);
+        openDialogue('La récupération a échoué', message);
+        setLoads((c)=>({
+          remote : false,
+          local : (c && c.local) || false
+        }))
+      }
+    }
+
+    async function fetchLocalTools() {
+      try{
+        const localToolsStore = await clientDb<Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>>('Nootin').init('personals', 'id', ['name_tool', 'id']);
+        const remoteToolsStore = await clientDb<Pick<Tables<'tool'>, 'id' | 'name_tool' | 'position'>>('Nootin').init('remote', 'id', ['name_tool', 'id']);
+        const {data: localTools} = await localToolsStore.get()
+        const {data: remoteTools} = await remoteToolsStore.get()
+        if (!isActive) return;
+        if (localTools) {
+          for (const tool of localTools) listKeys.current.add(tool.id);
+          setToolsList((current)=>{
+            const next = {...current}
+            for (const tool of localTools) {
+              next[tool.id] = tool
+            }
+            return next
+          })
+        }
+        if (remoteTools) {
+          for (const tool of remoteTools) listKeys.current.add(tool.id);
+          setToolsList((current)=>{
+            const next = {...current}
+            for (const tool of remoteTools) {
+              next[tool.id] = { ...tool, status:'shared', link_tool: '', icon_tool:'' }
+            }
+            return next
+          })
+        }
+        setLoads((c)=>({
+          local:true,
+          remote : (c ? c.remote : false)
+        }))
+      }catch(error) {
+        if (!isActive) return;
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Échec du chargement local des outils.', error);
+        openDialogue('La récupération locale a échoué', message);
+        setLoads((c)=>({
+          local:false,
+          remote : (c ? c.remote : false)
+        }))
+      }
+    }
+    void fetchLocalTools();
+    void fetchTools();
+    return () => {
+      isActive = false;
+    };
+  }, [openDialogue]);
+
+  return (
+      <div className={clsx(styles['board-wrapper'], 'board-wrapper')}>
+      <ToolViewportProvider>
+          <GridStack options={gridOptions} onDragStop={dragAction} components={{ItemContent}}>
+          <GridWidgetController autoLoad tools={gridTools}>
+            <ActionsButtons />
+          </GridWidgetController>
+        </GridStack>
+      </ToolViewportProvider>
       <DeleteToolManager draggedToolId={draggedToolId} />
-      <div
-        ref={gridRef}
-        className="grid-stack"
-        style={{ marginTop: 20 }}
-      />
-      <div className={clsx(styles['loader-wrapper'], isToolsLoaded && styles['hide'], 'loader-wrapper')}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path fill="currentColor" d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z">
-            <animateTransform attributeName="transform" dur="0.75s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12" />
-          </path>
-        </svg>
-      </div>
       <ToastUi toasterId="my-toaster" notifyCallback={ToastRef} />
       {dialogue}
     </div>
@@ -224,85 +438,206 @@ export default function Board() {
 }
 
 export function ActionsButtons() {
-  const { tool, updateTool, gridStack } = useToolStore((state) => state)
+  const { loadTools } = useGridWidgetController();
+  const { grid } = useGridStack();
   const roots = useRef<Map<HTMLElement, Root>>(new Map());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);  
+  const [isPending, startTransition] = useTransition();
   const ToastRef = useRef<((callbackProps: CallbackProps) => void) | null>(null);
   const { control, handleSubmit, reset, formState: { errors } } = useForm<ToolFormValues>({
     defaultValues: { name: 'Nike', linkTo: 'https://www.nike.com/', icon: 'https://pngimg.com/uploads/nike/nike_PNG18.png' },
   });
-  
-  function deleteTool() {
-    
+  const toolStoreRef = useRef<ClientDbProps<Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>> | null>(null)
+
+  function getVisibleCenterPosition(): Tool['position'] | null {
+    if (!grid) return null;
+
+    const gridRect = grid.el.getBoundingClientRect();
+    const visibleTop = Math.max(gridRect.top, 0);
+    const visibleBottom = Math.min(gridRect.bottom, window.innerHeight);
+    if (visibleBottom <= visibleTop) return null;
+
+    const visibleCenterY = (visibleTop + visibleBottom) / 2;
+    const cell = grid.getCellFromPixel({
+      top: visibleCenterY + window.scrollY,
+      left: gridRect.left + gridRect.width / 2 + window.scrollX,
+    }, true);
+
+    return {
+      x: 6,
+      y: Math.max(0, cell.y - 1),
+    };
   }
 
+  useEffect(() => {
+    let isActive = true;
+    const effectRoots = roots.current;
+
+    async function initializeLocalStore() {
+      try {
+        const toolStore = await clientDb<Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>>('Nootin').init('personals', 'id', ['name_tool', 'id']);
+        if (!isActive) {
+          toolStore.close();
+          return;
+        }
+        toolStoreRef.current = toolStore;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Échec de l’initialisation du stockage local des outils.', error);
+        if (isActive) setSubmitError(`Le stockage local est indisponible. ${message}`);
+      }
+    }
+
+    void initializeLocalStore();
+    return () => {
+      isActive = false;
+      toolStoreRef.current?.close();
+      toolStoreRef.current = null;
+      effectRoots.forEach(root => root.unmount());
+      effectRoots.clear();
+    };
+  }, []);
+
   async function handleAddTool(values: ToolFormValues) {
-    if (!gridStack) return;
-    const grid = gridStack.current;
-    if (!grid) return;
-
     setSubmitError(null);
-    const { data, error } = await addTool({
-      name_tool: values.name,
-      link_tool: values.linkTo,
-      icon_tool: values.icon || null,
-    });
-
-    if (error || !data) {
-      setSubmitError(error || 'La création du tool a échoué.');
+    const position = getVisibleCenterPosition();
+    if (!position) {
+      const message = 'La grille doit être visible pour placer le nouvel outil.';
+      setSubmitError(message);
       ToastRef.current?.({
-        title : "Erreur",
-        message: `La créations de l'outil à échouer. ${error}`,
+        title: 'Placement impossible',
+        message,
         intent: 'error',
       });
       return;
     }
 
-    updateTool(values);
-    const itemSet = ajouterComposant(
-      {
-        grid,
-        widget: {
-          id: String(data.id),
-          w: 1,
-          h: 1,
-          content: '',
-          noResize: true,
-        },
-        content: <ItemContent id={String(data.id)} {...values} />,
-      },
-      roots.current,
-      (item) => {
-        return Boolean(item.gridstackNode?.id);
-      },
-    );
-    if (!itemSet) {
+    let addToolResult: Awaited<ReturnType<typeof addTool>>;
+    try {
+      addToolResult = await addTool({
+        name_tool: values.name,
+        link_tool: values.linkTo,
+        icon_tool: values.icon || null,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Échec de la création de l’outil.', error);
+      setSubmitError(`La création du tool a échoué. ${message}`);
       ToastRef.current?.({
-        title : "Erreur",
-        message: `L'outil n'a pas été bien ajouter à la grille`,
+        title: 'Erreur',
+        message: `La création du tool a échoué. ${message}`,
         intent: 'error',
       });
       return;
     }
+
+    const { data: createdTool, error: addToolError } = addToolResult;
+
+    if (addToolError || !createdTool) {
+      setSubmitError(addToolError || 'La création du tool a échoué.');
+      ToastRef.current?.({
+        title : "Erreur",
+        message: `La créations de l'outil à échouer. ${addToolError}`,
+        intent: 'error',
+      });
+      return;
+    }
+
+    const localStore = toolStoreRef.current;
+    if (!localStore) {
+      const message = 'L’outil a été créé sur le serveur, mais le stockage local n’est pas initialisé.';
+      setSubmitError(message);
+      ToastRef.current?.({
+        title: 'Erreur de sauvegarde locale',
+        message,
+        intent: 'error',
+      });
+      return;
+    }
+
+    let insertResult: Awaited<ReturnType<typeof localStore.insert>>;
+    try {
+      insertResult = await localStore.insert([{
+          id: createdTool.id,
+          name_tool: createdTool.name_tool,
+          status: createdTool.status,
+          icon_tool: createdTool.icon_tool,
+          position,
+          link_tool: createdTool.link_tool,
+        }]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Échec de la sauvegarde locale de l’outil.', error);
+      const errorMessage = `L’outil a été créé sur le serveur, mais la sauvegarde locale a échoué. ${message}`;
+      setSubmitError(errorMessage);
+      ToastRef.current?.({
+        title: 'Erreur de sauvegarde locale',
+        message: errorMessage,
+        intent: 'error',
+      });
+      return;
+    }
+
+    const { error: insertError, data: insertedData } = insertResult;
+    if (insertError || !insertedData) {
+      const message = insertError || "L'outil a été créé sur le serveur, mais n'a pas pu être sauvegardé localement.";
+      setSubmitError(message);
+      ToastRef.current?.({
+        title: "Erreur de sauvegarde locale",
+        message,
+        intent: 'error',
+      });
+      return;
+    }
+
+    const tool: Tool = {
+      id: createdTool.id,
+      name_tool: createdTool.name_tool,
+      link_tool: createdTool.link_tool ?? undefined,
+      icon_tool: createdTool.icon_tool ?? undefined,
+      position,
+    };
+    if (!loadTools([tool])) {
+      const message = 'L’outil a été sauvegardé, mais n’a pas pu être ajouté à la grille.';
+      setSubmitError(message);
+      ToastRef.current?.({
+        title: 'Erreur d’affichage',
+        message,
+        intent: 'error',
+      });
+      return;
+    }
+
     reset();
     setDialogOpen(false);
     
   }
+
+  function submitToolForm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending) return;
+    startTransition(async () => {
+      await handleSubmit(handleAddTool)(event);
+    });
+  }
+
   return (
     <div className={clsx(styles['btn-actions-wrapper'], 'py-2 lg-py-3 px-2')}>
       <Dialog open={dialogOpen} onOpenChange={(_, data) => setDialogOpen(data.open)}>
       <DialogTrigger disableButtonEnhancement>
         <Button 
-          appearance="outline" name="addbloc" size="large"
-          icon={<PlusIcon size={32} />} 
+          appearance="outline" name="addbloc"
+          icon={<PlusIcon />} 
+          className={clsx(styles['btn-actions'], styles['active'])}
         />
       </DialogTrigger>
       <DialogSurface>
         <DialogBody>
           <DialogTitle>Ajouter un outil</DialogTitle>
           <DialogContent>
-            <form id="add-tool-form" className={clsx(styles['form_add_tool'])} onSubmit={handleSubmit(handleAddTool)}>
+            {submitError && <div role="alert">{submitError}</div>}
+            <form id="add-tool-form" className={clsx(styles['form_add_tool'])} onSubmit={submitToolForm}>
               <Controller
                 name="name"
                 control={control}
@@ -335,8 +670,10 @@ export function ActionsButtons() {
             </form>
           </DialogContent>
           <DialogActions fluid>
-            <Button appearance="primary" size="large" className={clsx(styles['form_add_tool_actions'])} type="submit" form="add-tool-form">Ajouter</Button>
-            <Button appearance="secondary" className={clsx(styles['form_add_tool_actions'])} size="large" type='reset' onClick={() => reset()} form="add-tool-form">Initialiser</Button>
+            <Button appearance="primary" size="large" className={clsx(styles['form_add_tool_actions'])} type="submit" form="add-tool-form" disabled={isPending}>
+              {isPending ? 'Ajout…' : 'Ajouter'}
+            </Button>
+            <Button appearance="secondary" className={clsx(styles['form_add_tool_actions'])} size="large" type='reset' onClick={() => reset({ name: '', linkTo: '', icon: '' })} form="add-tool-form">Initialiser</Button>
             <DialogTrigger disableButtonEnhancement>
               <Button appearance="secondary" className={clsx(styles['form_add_tool_actions'])} size="large">Annuler</Button>
             </DialogTrigger>
@@ -344,6 +681,13 @@ export function ActionsButtons() {
         </DialogBody>
       </DialogSurface>
     </Dialog>
+    <div className="">
+      <Button 
+          appearance="outline" name="addbloc"
+          icon={<MagnifyingGlassIcon weight="fill" />} 
+          className={clsx(styles['btn-actions'])}
+        />
+    </div>
     <ToastUi toasterId="my-toaster" notifyCallback={ToastRef} />
     </div>
     

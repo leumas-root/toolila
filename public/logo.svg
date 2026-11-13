@@ -1,11 +1,25 @@
-
-      <svg data-logo="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 40" width="56" height="40">
-        <g id="logogram" transform="
-    translate(0, 0)
-    rotate(0 27.5 20)
-    
-  "><path fill="#FE7F2D" d="M23.6322 0.597911C19.9395 1.76672 16.9327 5.48248 10.9192 12.914C3.501 22.0814 -0.208097 26.665 0.00900851 30.5474C0.155095 33.1598 1.30933 35.6108 3.22485 37.3763C6.07159 40 11.9392 40 23.6745 40H24.3275C27.1975 40 29.9133 38.6992 31.7186 36.4682C37.6627 29.1224 40.6348 25.4496 44.4744 24.8957C45.4078 24.7611 46.3555 24.7611 47.2889 24.8957C49.8634 25.2671 52.048 27.0408 55 30.3839C50.2776 21.5248 41.6084 3.83856 31.37 0.597911C28.8514 -0.199304 26.1508 -0.199304 23.6322 0.597911Z"/></g>
-        <g id="logotype" transform=""></g>
-        
-      </svg>
-    
+<svg height="512" inkscape:export-xdpi="96" inkscape:export-ydpi="96" style="fill:none;stroke:none;" version="1.1" viewBox="0 0 512 512" width="512" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Composition</title>
+    <defs/>
+    <sodipodi:namedview bordercolor="#666666" borderlayer="true" inkscape:document-units="px" inkscape:pagecheckerboard="true" pagecolor="#ffffff"/>
+    <metadata>
+        <rdf:RDF>
+            <cc:Work>
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/MovingImage"/>
+                <dc:title>Composition</dc:title>
+            </cc:Work>
+        </rdf:RDF>
+    </metadata>
+    <g id="Composition_2e4dd6c29d1f46e4b5bbd588315c07bc" inkscape:groupmode="layer" inkscape:label="Composition">
+        <g id="Layer_d93c01f82ef846ef9d8250a752067c38" inkscape:groupmode="layer" inkscape:label="Layer" opacity="1" transform="matrix(1, 0, 0, 1, 0, 0)"/>
+        <g fill="#0b2434" fill-opacity="1" id="Stroke_b8c2d304a2cb441d839b38e39769c58a" inkscape:label="Ellipse 1" opacity="1" stroke="#00000000" stroke-opacity="1" stroke-width="1" transform="matrix(1.75323, 0, 0, 1.75323, -272.636, -201.849)">
+            <ellipse cx="300" cy="262.667" rx="141.333" ry="141.333" style="stroke:none;"/>
+            <ellipse cx="300" cy="262.667" rx="141.333" ry="141.333" style="fill:none;stroke-dasharray:none;stroke-linecap:round;stroke-linejoin:round;"/>
+        </g>
+        <g fill="#fe7f2d" fill-opacity="1" id="Stroke_9c2d5b99deb54d51952cb9508530a2d1" inkscape:label="Path 1" opacity="1" stroke="#00000000" stroke-opacity="1" stroke-width="1" transform="matrix(1, 0, 0, 1, 0, 0)">
+            <path d="M 69.3333,424.032 C 69.3333,424.032 44.3404,292.345 111.438,257.514 176,224 290.667,320 329.333,325.333 368,330.667 276.801,133.505 276.801,133.505 276.801,133.505 385.583,120.75 385.583,120.75 385.583,120.75 496,341.333 428,360 360,378.667 261.333,296 212,281.333 162.667,266.667 186.242,497.046 186.242,497.046 186.242,497.046 148.475,488.985 114.223,463.708 79.9699,438.431 69.3333,424.032 69.3333,424.032 Z" sodipodi:nodetypes="cszcczzcz" style="stroke:none;"/>
+            <path d="M 69.3333,424.032 C 69.3333,424.032 44.3404,292.345 111.438,257.514 176,224 290.667,320 329.333,325.333 368,330.667 276.801,133.505 276.801,133.505 276.801,133.505 385.583,120.75 385.583,120.75 385.583,120.75 496,341.333 428,360 360,378.667 261.333,296 212,281.333 162.667,266.667 186.242,497.046 186.242,497.046 186.242,497.046 148.475,488.985 114.223,463.708 79.9699,438.431 69.3333,424.032 69.3333,424.032 Z" sodipodi:nodetypes="cszcczzcz" style="fill:none;stroke-dasharray:none;stroke-linecap:round;stroke-linejoin:round;"/>
+        </g>
+    </g>
+</svg>

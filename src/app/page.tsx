@@ -1,3 +1,4 @@
+import { ClientDbStoreProvider } from "@/lib/store/indexedDb/provider";
 import Header from "./components/Header";
 import Board, { ActionsButtons } from "./page.content";
 import styles from "./page.module.scss";
@@ -9,9 +10,10 @@ export default function Home() {
     <Header />
     <div className="gridBloc">
       <div className="container">
-        <Board />
+        <ClientDbStoreProvider>
+          <Board />
+        </ClientDbStoreProvider>
       </div>
     </div>
-    <ActionsButtons />
   </>
 }
