@@ -25,16 +25,17 @@
 .btn-actions{
     flex-wrap: wrap;
     flex-direction: column;
-    max-width: auto !important;
-    padding: 0;
+    max-width: none !important;
+    padding: 15px !important;
     background-color: color.adjust(utils.$black, $lightness: 85%, $space: hsl) !important;
     border-color: color.adjust(utils.$black, $lightness: 90%, $space: hsl) !important;
     border-radius: 25% !important;
-    font-size: 2rem !important;
+    font-size: 1.5rem !important;
     color: color.adjust(utils.$black, $lightness: 50%, $space: hsl) !important;
     :global(.rywnvv2){
         height: auto !important;
         width: auto !important;
+        font-size: inherit !important;
     }
     svg{
         height: inherit !important;
@@ -44,6 +45,18 @@
         background-color: utils.$primary-color !important;
         color: utils.$white !important;
         border-color: utils.$primary-color !important;
+    }
+
+    &:hover{
+        background-color: utils.$primary-color !important;
+        color: utils.$white !important;
+        border-color: utils.$primary-color !important;
+        transform: scale(1.038);
+        transition: all 0.1s ease-in-out;
+    }
+
+    &:active{
+        transform: scale(0.954);
     }
 }
 
