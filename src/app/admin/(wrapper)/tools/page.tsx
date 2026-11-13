@@ -17,18 +17,16 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowSquareOutIcon,
   CaretDownIcon,
-  CheckCircleIcon,
   CheckIcon,
-  ClockIcon,
   WrenchIcon,
 } from "@phosphor-icons/react"
 import ImageWrapper from "@/app/components/ImageWrapper"
-import { getTools, setTools } from "@/lib/tool.actions"
-import type { Tables } from "@/../utils/supabase/database.types"
+import { getAdminTools, setTools } from "@/lib/tool.actions"
+import type { AdminToolListItem } from "@/lib/tool.actions"
 import styles from "./page.module.scss"
 
 interface ToolsManipulation {
-  tools: Tables<"tool">[]
+  tools: AdminToolListItem[]
   selectedIds: {ids:string[], isAll : false} | {isAll : true},
   isLoading: boolean
   error: string | null
@@ -47,7 +45,7 @@ export default function ToolsPage() {
 
     async function loadTools() {
       try {
-        const result = await getTools()
+        const result = await getAdminTools()
         if (!isMounted) return
 
         if (result.error) {
@@ -61,10 +59,7 @@ export default function ToolsPage() {
 
         setManipulation((current) => ({
           ...current,
-          tools: [...(result.data ?? [])].sort(
-            (first, second) =>
-              new Date(second.dateCreated).getTime() - new Date(first.dateCreated).getTime(),
-          ),
+          tools: [...(result.data ?? [])],
           isLoading: false,
           error: null,
         }))
@@ -286,7 +281,7 @@ function ToolRow({
   selected,
   onToggle,
 }: {
-  tool: Tables<"tool">
+  tool: AdminToolListItem
   selected: boolean
   onToggle: () => void
 }) {

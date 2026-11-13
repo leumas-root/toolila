@@ -113,7 +113,27 @@ export async function addTool(tool: TablesInsert<'tool'>): Promise<AddToolResult
 }
 
 export type ToolListItem = Omit<Tables<'tool'>, 'dateCreated' | 'url_root_tool'>;
+export type AdminToolListItem = Tables<'tool'>;
 export type ToolNameAndPosition = Pick<Tables<'tool'>, 'id' | 'name_tool' | 'position'>;
+
+export async function getAdminTools(): Promise<{
+	data: AdminToolListItem[] | null;
+	error: string | null;
+}> {
+	const { authorized } = await requireAdmin(false);
+	if (!authorized) {
+		return { data: null, error: 'Accès administrateur requis.' };
+	}
+
+	const supabase = createClient(await cookies());
+	const { data, error } = await supabase.from('tool').select('*');
+
+	if (error) {
+		return { data: null, error: error.message };
+	}
+
+	return { data, error: null };
+}
 
 export async function getTools(
 	ids?: string[],
