@@ -3,6 +3,8 @@ import styles from "./page.module.scss";
 import { HeaderView, Navigation } from './layout.content';
 import { requireAdmin } from "@/lib/admin";
 
+export const instant = false;
+
 export default async function AdminProtectedLayout({
   children,
 }: {
